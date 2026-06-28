@@ -42,8 +42,9 @@ h2 { font-size: clamp(34px, 5vw, 64px); }
 .routeLine i { flex: 1; height: 2px; background: repeating-linear-gradient(90deg, #138453 0 12px, transparent 12px 20px); }
 .metric { padding: 22px; border-radius: 24px; background: #b7ff5a; margin-bottom: 14px; }
 .metric.muted { background: #eef1e8; }
+.metric.warning { background: #ffe8a3; }
 .metric small { display:block; font-weight: 800; color: #40514a; }
-.metric strong { display:block; margin-top: 8px; font-size: 38px; letter-spacing: -0.06em; }
+.metric strong { display:block; margin-top: 8px; font-size: clamp(28px, 4vw, 38px); letter-spacing: -0.06em; }
 .mapCard p { color:#52635b; line-height:1.55; margin-bottom:0; }
 .panel, .dataSection, .guardrails { max-width: 1180px; margin: 0 auto; padding: 82px clamp(20px, 4vw, 40px); }
 .panelHeader { max-width: 760px; margin-bottom: 34px; }
@@ -66,9 +67,11 @@ dt { color:#52635b; } dd { margin:0; font-weight:900; text-align:right; }
 .dataSection { display:grid; grid-template-columns: .8fr 1fr; gap:28px; align-items:start; }
 code { background:#e9efe8; border-radius:8px; padding:3px 6px; }
 .tableLike { border:1px solid rgba(7,17,13,.1); border-radius:28px; background:white; padding:10px; box-shadow: 0 30px 80px rgba(7,17,13,.08); }
-.row { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-radius:18px; }
+.row { display:flex; align-items:center; justify-content:space-between; gap: 18px; padding:14px 16px; border-radius:18px; }
 .row:nth-child(odd) { background:#f5f8f2; }
-.row b { color:#138453; }
+.row b { color:#138453; text-align: right; font-size: 14px; max-width: 62%; }
+.result.missing { border-color: rgba(180, 83, 9, .35); }
+.result.manual { border-color: rgba(19, 132, 83, .35); }
 .guardrails { padding-top: 30px; }
 .guardrails ul { margin: 22px 0 0; padding-left: 24px; }
 

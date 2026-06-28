@@ -1,27 +1,45 @@
 # Routy
 
-Routy is a first MVP for landed-cost intelligence: a simple customs-duty calculator that uses official online tariff benchmark data by importing country.
+Routy is a landed-cost intelligence MVP. The calculator is now intentionally conservative: it only calculates customs duty when a route has an explicit rule or when the user provides a documented manual duty rate.
 
 ## Current MVP
 
-- Country selector with 179 countries/zones
+- Exporter/origin country selector
+- Importer/destination country selector
+- Mandatory HS code input for official lookups
 - Customs value input
-- Optional HS code field
-- Optional manual duty-rate override when the product-specific HS rate is known
-- Estimated customs duty calculation
-- Indicative broker-fee estimate
-- Copyable report
-- Compliance guardrails and source transparency
+- Manual duty-rate fallback when the exact official rate is known
+- Intra-EU rule: EU origin to EU destination = 0% customs duty
+- Missing-data state instead of fake country-average calculations
+- Copyable report with source, confidence, and broker-review flag
+- Compliance guardrails
 
-## Data source
+## Target data model
 
-The current dataset is generated from the World Bank WDI/WITS indicator:
+The useful product requires a full tariff matrix:
+
+```text
+origin country × importing country × HS code → MFN rate / preferential rate / extra measures / source
+```
+
+Examples:
+
+- EU import: TARIC / Access2Markets with origin, destination, HS code, preferences, anti-dumping and additional measures.
+- US import: HTSUS + Chapter 99 with country-specific measures such as Section 301, quotas, sanctions and preference programs.
+- UK import: UK Global Tariff + preferential agreements.
+- Other destinations: official national customs tariff sources.
+
+## Removed benchmark calculation
+
+The repository still contains the World Bank/WITS country-level benchmark dataset for country names and historical reference, but the live calculator no longer uses it as a duty-rate calculation.
+
+The old indicator was:
 
 - `TM.TAX.MRCH.SM.AR.ZS`
 - Label: Tariff rate, applied, simple mean, all products (%)
 - Source URL: https://api.worldbank.org/v2/country/all/indicator/TM.TAX.MRCH.SM.AR.ZS?format=json
 
-Important: product-specific maximum customs duty varies by HS code, origin, destination, preferential agreements, anti-dumping measures, and customs interpretation. This MVP stores a `maxDutyRate` field for the future HS-specific data layer, but the live calculator currently uses the official country-level benchmark rate unless the user enters a manual rate.
+That indicator is **not** product-specific and is **not** enough for real customs-duty calculation.
 
 ## Development
 
