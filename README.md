@@ -1,50 +1,32 @@
-# React + TypeScript + Vite
+# Routy
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Routy is a first MVP for landed-cost intelligence: a simple customs-duty calculator that uses official online tariff benchmark data by importing country.
 
-Currently, two official plugins are available:
+## Current MVP
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Country selector with 179 countries/zones
+- Customs value input
+- Optional HS code field
+- Optional manual duty-rate override when the product-specific HS rate is known
+- Estimated customs duty calculation
+- Indicative broker-fee estimate
+- Copyable report
+- Compliance guardrails and source transparency
 
-## Expanding the ESLint configuration
+## Data source
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+The current dataset is generated from the World Bank WDI/WITS indicator:
 
-- Configure the top-level `parserOptions` property like this:
+- `TM.TAX.MRCH.SM.AR.ZS`
+- Label: Tariff rate, applied, simple mean, all products (%)
+- Source URL: https://api.worldbank.org/v2/country/all/indicator/TM.TAX.MRCH.SM.AR.ZS?format=json
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+Important: product-specific maximum customs duty varies by HS code, origin, destination, preferential agreements, anti-dumping measures, and customs interpretation. This MVP stores a `maxDutyRate` field for the future HS-specific data layer, but the live calculator currently uses the official country-level benchmark rate unless the user enters a manual rate.
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## Development
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```bash
+npm install
+npm run dev
+npm run build
 ```
