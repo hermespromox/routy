@@ -18,6 +18,10 @@ type CountryRate = {
 const records = (tariffBenchmarks.records as CountryRate[]).filter((row) => row.benchmarkDutyRate !== null)
 
 const preferredDestinations = ['EU', 'FR', 'DE', 'NL', 'US', 'GB', 'MA', 'TR', 'AE', 'VN', 'CN']
+const euCountryCodes = new Set([
+  'EU', 'AT', 'BE', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU',
+  'IE', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE',
+])
 
 function currency(value: number, code: string) {
   return new Intl.NumberFormat('fr-FR', {
@@ -48,7 +52,8 @@ function App() {
 
   const selectedOrigin = countries.find((row) => row.iso2 === origin) ?? countries.find((row) => row.iso2 === 'CN') ?? countries[0]
   const selected = countries.find((row) => row.iso2 === destination) ?? countries[0]
-  const selectedRate = manualRate.trim() ? Number(manualRate) : selected.benchmarkDutyRate
+  const isIntraEu = euCountryCodes.has(selectedOrigin.iso2) && euCountryCodes.has(selected.iso2)
+  const selectedRate = isIntraEu ? 0 : (manualRate.trim() ? Number(manualRate) : selected.benchmarkDutyRate)
   const duty = customsValue * (selectedRate / 100)
   const landedWithoutVat = customsValue + duty
   const brokerEstimate = Math.max(120, customsValue * 0.006)
@@ -57,7 +62,7 @@ function App() {
     `Destination: ${selected.country} (${selected.iso2})`,
     `HS code: ${hsCode || 'non renseigné'}`,
     `Valeur douanière: ${currency(customsValue, currencyCode)}`,
-    `Taux utilisé: ${pct(selectedRate)} ${manualRate.trim() ? '(saisi manuellement)' : '(benchmark pays)'}`,
+    `Taux utilisé: ${pct(selectedRate)} ${isIntraEu ? '(intra-UE: droits de douane 0 %)' : manualRate.trim() ? '(saisi manuellement)' : '(benchmark pays)'}`,
     `Droits estimés: ${currency(duty, currencyCode)}`,
     `Frais broker indicatifs: ${currency(brokerEstimate, currencyCode)}`,
     `Total avant TVA/GST: ${currency(landedWithoutVat + brokerEstimate, currencyCode)}`,
@@ -87,8 +92,8 @@ function App() {
           <div className="mapCard" aria-label="aperçu route">
             <div className="routeLine"><b>{selectedOrigin.iso2}</b><i /> <b>{selected.iso2}</b></div>
             <div className="metric"><small>Droits estimés</small><strong>{currency(duty, currencyCode)}</strong></div>
-            <div className="metric muted"><small>Taux pays benchmark</small><strong>{pct(selected.benchmarkDutyRate)}</strong></div>
-            <p>Le taux exact dépend du HS code, de l'origine, des accords préférentiels et des mesures anti-dumping.</p>
+            <div className="metric muted"><small>Taux appliqué</small><strong>{pct(selectedRate)}</strong></div>
+            <p>{isIntraEu ? 'Expédition intra-UE détectée : droits de douane à 0 %. La TVA intracommunautaire reste un sujet séparé.' : "Le taux exact dépend du HS code, de l'origine, des accords préférentiels et des mesures anti-dumping."}</p>
           </div>
         </div>
       </section>
@@ -147,13 +152,15 @@ function App() {
               <div><dt>Pays exportateur</dt><dd>{selectedOrigin.country}</dd></div>
               <div><dt>Pays importateur</dt><dd>{selected.country}</dd></div>
               <div><dt>Valeur douanière</dt><dd>{currency(customsValue, currencyCode)}</dd></div>
-              <div><dt>Taux utilisé</dt><dd>{pct(selectedRate)}</dd></div>
+              <div><dt>Taux utilisé</dt><dd>{pct(selectedRate)}{isIntraEu ? ' — intra-UE' : ''}</dd></div>
               <div><dt>Droits estimés</dt><dd>{currency(duty, currencyCode)}</dd></div>
               <div><dt>Frais broker indicatifs</dt><dd>{currency(brokerEstimate, currencyCode)}</dd></div>
               <div className="total"><dt>Total avant TVA/GST</dt><dd>{currency(landedWithoutVat + brokerEstimate, currencyCode)}</dd></div>
             </dl>
             <p className="calculationNote">
-              À ce stade, le taux automatique est un benchmark du pays importateur. L'origine est affichée et exportée, mais les accords préférentiels par origine seront ajoutés dans la couche HS/TARIC suivante.
+              {isIntraEu
+                ? 'Règle appliquée : circulation intra-UE détectée, donc droits de douane à 0 %. La TVA, l’autoliquidation et les obligations déclaratives restent hors MVP.'
+                : "À ce stade, le taux automatique est un benchmark du pays importateur. L'origine est affichée et exportée, mais les accords préférentiels par origine seront ajoutés dans la couche HS/TARIC suivante."}
             </p>
             <button onClick={() => navigator.clipboard.writeText(reportLines.join('\n'))}>Copier le rapport</button>
           </aside>
