@@ -62,6 +62,7 @@ dt { color:#52635b; } dd { margin:0; font-weight:900; text-align:right; }
 .total { font-size:20px; }
 .total dd { color:#138453; }
 .result button { width:100%; }
+.calculationNote { margin: -6px 0 18px; color:#52635b; line-height:1.55; font-size:14px; background:#f5f8f2; border:1px solid #e0e8dd; border-radius:16px; padding:12px; }
 .dataSection { display:grid; grid-template-columns: .8fr 1fr; gap:28px; align-items:start; }
 code { background:#e9efe8; border-radius:8px; padding:3px 6px; }
 .tableLike { border:1px solid rgba(7,17,13,.1); border-radius:28px; background:white; padding:10px; box-shadow: 0 30px 80px rgba(7,17,13,.08); }

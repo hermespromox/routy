@@ -32,6 +32,7 @@ function pct(value: number) {
 }
 
 function App() {
+  const [origin, setOrigin] = useState('CN')
   const [destination, setDestination] = useState('EU')
   const [customsValue, setCustomsValue] = useState(10000)
   const [currencyCode, setCurrencyCode] = useState('EUR')
@@ -45,12 +46,14 @@ function App() {
     return [...preferred, ...rest]
   }, [])
 
+  const selectedOrigin = countries.find((row) => row.iso2 === origin) ?? countries.find((row) => row.iso2 === 'CN') ?? countries[0]
   const selected = countries.find((row) => row.iso2 === destination) ?? countries[0]
   const selectedRate = manualRate.trim() ? Number(manualRate) : selected.benchmarkDutyRate
   const duty = customsValue * (selectedRate / 100)
   const landedWithoutVat = customsValue + duty
   const brokerEstimate = Math.max(120, customsValue * 0.006)
   const reportLines = [
+    `Exportateur / origine: ${selectedOrigin.country} (${selectedOrigin.iso2})`,
     `Destination: ${selected.country} (${selected.iso2})`,
     `HS code: ${hsCode || 'non renseigné'}`,
     `Valeur douanière: ${currency(customsValue, currencyCode)}`,
@@ -73,7 +76,7 @@ function App() {
             <p className="eyebrow">Landed cost intelligence</p>
             <h1>Calculez rapidement les droits de douane avant d'expédier.</h1>
             <p className="lead">
-              Routy compare une valeur douanière avec des taux officiels collectés en ligne par pays.
+              Routy compare un pays exportateur, une destination et une valeur douanière avec des taux officiels collectés en ligne.
               Cette première version donne une estimation simple, transparente et exportable.
             </p>
             <div className="actions">
@@ -82,7 +85,7 @@ function App() {
             </div>
           </div>
           <div className="mapCard" aria-label="aperçu route">
-            <div className="routeLine"><b>CN</b><i /> <b>{selected.iso2}</b></div>
+            <div className="routeLine"><b>{selectedOrigin.iso2}</b><i /> <b>{selected.iso2}</b></div>
             <div className="metric"><small>Droits estimés</small><strong>{currency(duty, currencyCode)}</strong></div>
             <div className="metric muted"><small>Taux pays benchmark</small><strong>{pct(selected.benchmarkDutyRate)}</strong></div>
             <p>Le taux exact dépend du HS code, de l'origine, des accords préférentiels et des mesures anti-dumping.</p>
@@ -94,11 +97,19 @@ function App() {
         <div className="panelHeader">
           <p className="eyebrow">Calculateur MVP</p>
           <h2>Droits de douane simples</h2>
-          <p>Entrez une valeur, choisissez un pays importateur, puis remplacez le taux si vous connaissez le taux HS exact.</p>
+          <p>Entrez le pays exportateur, la destination, une valeur, puis remplacez le taux si vous connaissez le taux HS exact.</p>
         </div>
 
         <div className="calculator">
           <form className="form">
+            <label>
+              Pays exportateur / origine
+              <select value={origin} onChange={(event) => setOrigin(event.target.value)}>
+                {countries.map((country) => (
+                  <option value={country.iso2} key={country.iso2}>{country.country} — {country.iso2}</option>
+                ))}
+              </select>
+            </label>
             <label>
               Destination / pays importateur
               <select value={destination} onChange={(event) => setDestination(event.target.value)}>
@@ -130,15 +141,20 @@ function App() {
           <aside className="result">
             <div className="resultTop">
               <span>Estimation</span>
-              <b>{selected.country}</b>
+              <b>{selectedOrigin.iso2} → {selected.iso2}</b>
             </div>
             <dl>
+              <div><dt>Pays exportateur</dt><dd>{selectedOrigin.country}</dd></div>
+              <div><dt>Pays importateur</dt><dd>{selected.country}</dd></div>
               <div><dt>Valeur douanière</dt><dd>{currency(customsValue, currencyCode)}</dd></div>
               <div><dt>Taux utilisé</dt><dd>{pct(selectedRate)}</dd></div>
               <div><dt>Droits estimés</dt><dd>{currency(duty, currencyCode)}</dd></div>
               <div><dt>Frais broker indicatifs</dt><dd>{currency(brokerEstimate, currencyCode)}</dd></div>
               <div className="total"><dt>Total avant TVA/GST</dt><dd>{currency(landedWithoutVat + brokerEstimate, currencyCode)}</dd></div>
             </dl>
+            <p className="calculationNote">
+              À ce stade, le taux automatique est un benchmark du pays importateur. L'origine est affichée et exportée, mais les accords préférentiels par origine seront ajoutés dans la couche HS/TARIC suivante.
+            </p>
             <button onClick={() => navigator.clipboard.writeText(reportLines.join('\n'))}>Copier le rapport</button>
           </aside>
         </div>
